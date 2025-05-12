@@ -19,6 +19,42 @@ try {
         email VARCHAR(100) NOT NULL
     )");
 
+        if (isset($_GET['eliminar'])) {
+        $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
+        $stmt->execute([$_GET['eliminar']]);
+        $_SESSION['mensaje'] = "Usuario eliminado correctamente";
+        header("Location: index.php");
+        exit();
+    }
+       // Obtener usuario a editar
+    if (isset($_GET['id'])) {
+        $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+        $stmt->execute([$_GET['id']]);
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$usuario) {
+            $_SESSION['error'] = "Usuario no encontrado";
+            header("Location: index.php");
+            exit();
+        }
+    }
+
+    // Procesar actualización
+    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id'])) {
+        $id = $_POST['id'];
+        $nombre = trim($_POST['nombre']);
+        $email = trim($_POST['email']);
+        
+        if (!empty($nombre) && !empty($email)) {
+            $stmt = $pdo->prepare("UPDATE usuarios SET nombre = ?, email = ? WHERE id = ?");
+            $stmt->execute([$nombre, $email, $id]);
+            
+            $_SESSION['mensaje'] = "Usuario actualizado correctamente";
+            header("Location: index.php");
+            exit();
+        }
+    }
+
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $nombre = $_POST['nombre'];
         $email = $_POST['email'];
@@ -42,6 +78,5 @@ try {
 } catch (PDOException $e) {
     die("Error de conexión: " . $e->getMessage());
 }
-
 
 ?>
